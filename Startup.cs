@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Logging;
 
 namespace WebApi
 {
@@ -32,7 +33,9 @@ namespace WebApi
 
             // configure jwt authentication
             var appSettings = appSettingsSection.Get<AppSettings>();
-            var key = Encoding.ASCII.GetBytes(appSettings.Secret);
+            var signingKey = Encoding.ASCII.GetBytes(appSettings.SigningKey);
+            var encryptionKey = Encoding.ASCII.GetBytes(appSettings.EncryptionKey);
+
             services.AddAuthentication(x =>
             {
                 x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -44,8 +47,9 @@ namespace WebApi
                 x.SaveToken = true;
                 x.TokenValidationParameters = new TokenValidationParameters
                 {
+                    TokenDecryptionKey = new SymmetricSecurityKey(encryptionKey),
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    IssuerSigningKey = new SymmetricSecurityKey(signingKey),
                     ValidateIssuer = false,
                     ValidateAudience = false
                 };
@@ -65,7 +69,12 @@ namespace WebApi
                 .AllowAnyHeader());
 
             app.UseAuthentication();
-            
+
+            if (env.IsDevelopment())
+            {
+                IdentityModelEventSource.ShowPII = true;
+            }
+
             app.UseMvc();
         }
     }
