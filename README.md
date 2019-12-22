@@ -6,4 +6,6 @@ Original documentation and instructions check out http://jasonwatmore.com/post/2
 
 ## What's the difference?
 
-The authenticaiton JWT is encrypted here.
+* The authentication JWT is encrypted here;
+* There are 2 different keys: Encyrption & signing key. They are configurable;
+* PII is shown for development environment only
